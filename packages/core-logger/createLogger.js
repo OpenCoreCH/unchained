@@ -7,8 +7,6 @@ const {
   UNCHAINED_LOG_FORMAT = 'unchained',
 } = process.env;
 
-const { combine, label, timestamp, colorize, printf, json } = format;
-
 const debugStringContainsModule = (debugString, moduleName) => {
   const loggingMatched = debugString.split(',').reduce((accumulator, name) => {
     if (accumulator === false) return accumulator;
@@ -29,17 +27,23 @@ const debugStringContainsModule = (debugString, moduleName) => {
   return loggingMatched || false;
 };
 
-const myFormat = printf(
-  ({ level, message, label: _label, timestamp: _timestamp, ...rest }) => {
-    const otherPropsString = stringify(rest);
-    return `${_timestamp} [${_label}] ${level}: ${message} ${otherPropsString}`;
+const myFormat = format.printf(
+  ({ level, message, label, timestamp, stack, ...rest }) => {
+    const otherPropsString = ''; // stringify(rest);
+    return [
+      `${timestamp} [${label}] ${level}:`,
+      `${message}`,
+      `${otherPropsString}`,
+      stack ? `\n${stack}` : null,
+    ]
+      .filter(Boolean)
+      .join(' ');
   }
 );
 
 const UnchainedLogFormats = {
-  unchained: (moduleName) =>
-    combine(timestamp(), label({ label: moduleName }), colorize(), myFormat),
-  json,
+  unchained: format.combine(format.colorize(), myFormat),
+  json: format.combine(format.json()),
 };
 
 if (!UnchainedLogFormats[UNCHAINED_LOG_FORMAT.toLowerCase()]) {
@@ -55,9 +59,14 @@ export { transports, format };
 export default (moduleName, moreTransports = []) => {
   const loggingMatched = debugStringContainsModule(DEBUG, moduleName);
   return createLogger({
+    format: format.combine(
+      format.errors({ stack: true }),
+      format.timestamp(),
+      format.label({ label: moduleName })
+    ),
     transports: [
       new transports.Console({
-        format: UnchainedLogFormats[UNCHAINED_LOG_FORMAT](moduleName),
+        format: UnchainedLogFormats[UNCHAINED_LOG_FORMAT],
         stderrLevels: ['error'],
         consoleWarnLevels: ['warn'],
         level: loggingMatched ? 'debug' : LOG_LEVEL,

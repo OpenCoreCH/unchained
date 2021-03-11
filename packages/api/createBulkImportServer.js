@@ -29,7 +29,7 @@ export default (options) => {
         res.writeHead(200);
         return res.end(JSON.stringify(work));
       } catch (e) {
-        log.error(e.message);
+        log.error(e);
         res.writeHead(503);
         return res.end(JSON.stringify(e));
       }

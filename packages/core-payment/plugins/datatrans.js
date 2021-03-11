@@ -119,8 +119,10 @@ WebApp.connectHandlers.use(DATATRANS_WEBHOOK_PATH, (req, res) => {
             }
           );
           logger.info(
-            `Datatrans Webhook: Unchained registered payment credentials for ${userId}`,
-            { userId }
+            `${refno}: Registered payment credentials for ${userId}`,
+            {
+              userId,
+            }
           );
           res.writeHead(200);
           return res.end(JSON.stringify(paymentCredentials));
@@ -131,21 +133,19 @@ WebApp.connectHandlers.use(DATATRANS_WEBHOOK_PATH, (req, res) => {
           .checkout({ paymentContext: authorizationResponse });
         res.writeHead(200);
         logger.info(
-          `Datatrans Webhook: Unchained confirmed checkout for order ${order.orderNumber}`,
-          { orderId: order._id }
+          `${refno}: Confirmed checkout for order ${order.orderNumber}`,
+          {
+            orderId: order._id,
+          }
         );
         return res.end(JSON.stringify(order));
       } catch (e) {
-        logger.error(
-          `Datatrans Webhook: Unchained rejected to checkout with message ${JSON.stringify(
-            e
-          )}`
-        );
+        logger.error(`${refno}: Refused to checkout with exception`, e);
         res.writeHead(500);
         return res.end(JSON.stringify(e));
       }
     } else {
-      logger.error(`Datatrans Webhook: Reference number not set`);
+      logger.error(`Reference number not set`);
     }
   }
   res.writeHead(404);

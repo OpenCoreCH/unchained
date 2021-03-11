@@ -1,30 +1,13 @@
-import { ApolloServer, ApolloError } from 'apollo-server-express';
+import { ApolloServer } from 'apollo-server-express';
 import { WebApp } from 'meteor/webapp';
-import { log } from 'meteor/unchained:core-logger';
+import { createLogger } from 'meteor/unchained:core-logger';
 
 import typeDefs from './schema';
 import resolvers from './resolvers';
 
-const { APOLLO_ENGINE_KEY } = process.env;
+const logger = createLogger('unchained:api');
 
-const logGraphQLServerError = (error) => {
-  try {
-    const {
-      message,
-      extensions: {
-        exception: { stacktrace, ...parameters },
-        ...extensions
-      },
-      ...rest
-    } = error;
-    log(`${message} ${extensions && extensions.code}`, {
-      level: 'error',
-      ...extensions,
-      ...rest,
-    });
-    console.error(stacktrace, parameters); // eslint-disable-line
-  } catch (e) {} // eslint-disable-line
-};
+const { APOLLO_ENGINE_KEY } = process.env;
 
 export default (options) => {
   const {
@@ -46,15 +29,13 @@ export default (options) => {
         }
       : contextResolver,
     formatError: (error) => {
-      logGraphQLServerError(error);
-      const {
-        message,
-        extensions: { exception, code, ...extensions }, // removes exception
-      } = error;
-      return new ApolloError(message, code, {
-        code,
-        ...extensions,
-      });
+      logger.error(error.originalError);
+      if (error.originalError?.code) {
+        // Use the originalError's code because that is more specific
+        // Apollo autmatically decides if the stacktrace gets removed https://www.apollographql.com/docs/apollo-server/data/errors/#omitting-or-including-stacktrace
+        error.extensions.code = error.originalError?.code; // eslint-disable-line
+      }
+      return error;
     },
     engine: APOLLO_ENGINE_KEY
       ? {

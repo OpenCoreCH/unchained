@@ -219,7 +219,7 @@ WebApp.connectHandlers.use(APPLE_IAP_WEBHOOK_PATH, async (req, res) => {
       res.writeHead(200);
       return res.end();
     } catch (e) {
-      logger.error(e.message);
+      logger.error(e);
       res.writeHead(503);
       return res.end(JSON.stringify(e));
     }
