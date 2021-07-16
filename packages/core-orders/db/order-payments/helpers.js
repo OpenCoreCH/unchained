@@ -124,7 +124,7 @@ OrderPayments.helpers({
     });
     const pricing = new PaymentPricingDirector({ item: this });
     const calculation = pricing.calculate();
-    return OrderPayments.update(
+    return OrderPayments.rawCollection().updateOne(
       { _id: this._id },
       { $set: { calculation, updated: new Date() } }
     );

@@ -106,7 +106,7 @@ OrderDeliveries.helpers({
     });
     const pricing = new DeliveryPricingDirector({ item: this });
     const calculation = pricing.calculate();
-    return OrderDeliveries.update(
+    return OrderDeliveries.rawCollection().updateOne(
       { _id: this._id },
       {
         $set: { updated: new Date(), calculation },

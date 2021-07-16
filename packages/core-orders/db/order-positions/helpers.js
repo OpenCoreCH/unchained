@@ -110,12 +110,12 @@ OrderPositions.helpers({
     });
     const pricing = new ProductPricingDirector({ item: this });
     const calculation = pricing.calculate();
-    OrderPositions.update(
+    /* OrderPositions.update(
       { _id: this._id },
       {
         $set: { calculation },
       }
-    );
+    ); */
     return OrderPositions.findOne({ _id: this._id });
   },
   updateScheduling() {
@@ -147,7 +147,7 @@ OrderPositions.helpers({
         ...dispatch,
       };
     });
-    return OrderPositions.update(
+    return OrderPositions.rawCollection().updateOne(
       { _id: this._id },
       {
         $set: { scheduling },
@@ -236,7 +236,7 @@ OrderPositions.updatePosition = (
       { orderId }
     );
 
-    OrderPositions.update(
+    OrderPositions.rawCollection().updateOne(
       { orderId, _id: positionId },
       {
         $set: {
@@ -260,7 +260,7 @@ OrderPositions.updatePosition = (
         quantity,
         configuration,
       });
-      OrderPositions.update(
+      OrderPositions.rawCollection().updateOne(
         { orderId, _id: positionId },
         {
           $set: {
@@ -271,7 +271,7 @@ OrderPositions.updatePosition = (
       );
     }
 
-    OrderPositions.update(
+    OrderPositions.rawCollection().updateOne(
       { orderId, _id: positionId },
       {
         $set: {

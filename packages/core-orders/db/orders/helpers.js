@@ -369,6 +369,7 @@ Orders.helpers({
       quantity,
       configuration,
     });
+
     const orderPosition = OrderPositions.upsertPosition({
       orderId: this._id,
       productId: resolvedProduct._id,
@@ -859,16 +860,16 @@ Orders.updateCalculation = ({ orderId }) => {
 
   const order = Promise.await(Orders.findOne({ _id: orderId }).initProviders());
   const items = order.items();
-
   const updatedItems = items.map((item) => item.updateCalculation());
+
   order.delivery()?.updateCalculation(); // eslint-disable-line
+
   order.payment()?.updateCalculation(); // eslint-disable-line
 
   updatedItems.forEach((item) => item.updateScheduling());
-
   const pricing = new OrderPricingDirector({ item: order });
   const calculation = pricing.calculate();
-  return Orders.update(
+  return Orders.rawCollection().updateOne(
     { _id: orderId },
     {
       $set: {
