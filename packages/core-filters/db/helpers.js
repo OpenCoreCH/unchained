@@ -10,7 +10,6 @@ import {
 import { FilterTypes } from './schema';
 import { Filters, FilterTexts } from './collections';
 import { FilterDirector } from '../director';
-import intersectProductIds from '../search/intersect-product-ids';
 import { searchProducts } from '../search';
 
 const util = require('util');
@@ -464,6 +463,8 @@ Filters.helpers({
     return mappedOptions;
   },
   load({ filterQuery, forceLiveCollection, allProductIdsSet, otherFilters }) {
+    const director = new FilterDirector({ filter: this });
+
     const values = filterQuery[this.key];
 
     // The examinedProductIdSet is a set of product id's that:
@@ -482,7 +483,7 @@ Filters.helpers({
     // - Is the same like examinedProductIdSet
     const queryWithoutOwnFilter = { ...filterQuery };
     delete queryWithoutOwnFilter[this.key];
-    const filteredByOtherFiltersSet = intersectProductIds({
+    const filteredByOtherFiltersSet = director.intersectProductIds({
       productIds: examinedProductIdSet,
       filters: otherFilters.filter(
         (otherFilter) => otherFilter.key !== this.key

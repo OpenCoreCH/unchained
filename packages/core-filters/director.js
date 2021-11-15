@@ -42,6 +42,13 @@ class FilterAdapter {
     return lastSelector;
   }
 
+  // return a selector that is applied to Products.find to find relevant products
+  // if no key is provided, it expects either null for all products or a list of products that are relevant
+  // eslint-disable-next-line
+  async transformFilterIntersection(lastSelector) {
+    return lastSelector;
+  }
+
   // return a selector that is applied to Filters.find to find relevant filters
   // eslint-disable-next-line
   async transformFilterSelector(lastSelector) {
@@ -87,6 +94,15 @@ class FilterDirector {
     return this.reduceAdapters(async (lastSearchPromise, concreteAdapter) => {
       return concreteAdapter.searchProducts(await lastSearchPromise, options);
     }, productIdResolver || null);
+  }
+
+  // eslint-disable-next-line
+  intersectProductIds(productIds, { filters, filterQuery, ...options }) {
+    return filters.reduce((productIdSet, filter) => {
+      const values = filterQuery[filter.key];
+      console.log(productIdSet, values, filter);
+      return filter.intersect({ values, productIdSet, ...options });
+    }, new Set(productIds));
   }
 
   async buildFilterSelector(defaultSelector, options = {}) {
