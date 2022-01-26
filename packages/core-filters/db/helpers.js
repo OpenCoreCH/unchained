@@ -12,6 +12,7 @@ import { Filters, FilterTexts } from './collections';
 import { FilterDirector } from '../director';
 import { searchProducts } from '../search';
 import intersectSet from '../intersect-set';
+import createFilterValueParser from '../filter-value-parsers';
 
 const util = require('util');
 const zlib = require('zlib');
@@ -408,27 +409,12 @@ Filters.helpers({
       ? this.buildProductIdMap()
       : this.cache() || this.buildProductIdMap();
 
-    if (this.type === FilterTypes.SWITCH) {
-      const [stringifiedBoolean] = values;
-      if (stringifiedBoolean !== undefined) {
-        if (
-          !stringifiedBoolean ||
-          stringifiedBoolean === 'false' ||
-          stringifiedBoolean === '0'
-        ) {
-          return productIds.false;
-        }
-        return productIds.true;
-      }
-      return allProductIds;
-    }
-
-    const reducedByValues = values.reduce((accumulator, value) => {
-      const additionalValues =
-        value === undefined ? allProductIds : productIds[value];
-      return [...accumulator, ...(additionalValues || [])];
-    }, []);
-    return reducedByValues;
+    const parser = createFilterValueParser(
+      this.type,
+      productIds,
+      allProductIds
+    );
+    return parser(values);
   },
   optionsForFilterType(type) {
     if (type === FilterTypes.SWITCH) return ['true', 'false'];
